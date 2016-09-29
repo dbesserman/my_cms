@@ -12,7 +12,7 @@ class CMSTest < Minitest::Test
     Sinatra::Application
   end
 
-  def test_main
+  def test_index
     get '/'
     
 
@@ -24,7 +24,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_viewing_text_document
-    get 'history.txt'
+    get '/history.txt'
 
     assert_equal 200, last_response.status
     assert_equal 'text/plain', last_response['Content-Type']

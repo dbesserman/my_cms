@@ -2,13 +2,17 @@
 source "https://rubygems.org"
 
 gem "sinatra"
-gem "sinatra-contrib"
 gem "erubis"
-gem 'minitest'
-gem 'rack'
-gem 'rack-test'
+gem 'redcarpet'
 
 group :develop do
+  gem "sinatra-contrib"
   gem "pry"
+end
+
+group :test do
+  gem 'minitest'
+  gem 'rack'
+  gem 'rack-test'
 end
 

@@ -7,7 +7,7 @@ DOCS_PATH = 'data'
 # Displays links to available documents
 get '/' do
   @documents = get_documents
-  erb :main, layout: :layout
+  erb :index, layout: :layout
 end
 
 # Accesses a document
