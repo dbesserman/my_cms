@@ -2,11 +2,11 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'tilt/erubis'
 
-DOCS_PATH = 'public/documents'
+DOCS_PATH = 'data'
 
 get '/' do
   @documents = get_documents
-  require 'pry'; binding.pry
+  erb :main, layout: :layout
 end
 
 def get_documents
