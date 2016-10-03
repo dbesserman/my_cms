@@ -9,53 +9,57 @@ configure do
   enable :sessions
 end
 
-before do
-  @documents = get_documents
-end
-
 # Displays links to available documents
 get '/' do
+  @files = files
   erb :index, layout: :layout
 end
 
 # Accesses a document
 get '/:document' do
-  doc_name = params[:document]
+  file_name = params[:document]
 
-  if @documents.include?(doc_name)
-    load_file_content(doc_name)
+  if file_exists?(file_name)
+    load_file_content(file_name)
   else
-    session[:error] = "#{doc_name} does not exist."
+    session[:error] = "#{file_name} does not exist."
     redirect '/'
   end
 end
 
 # Accesses the form to edit a document
 get '/:document/edit' do
-  @doc_name = params[:document]
-  file_path = "#{DOCS_PATH}/#{@doc_name}"
-  @content = File.read(file_path)
+  @file_name = params[:document]
+  @content = File.read(file_path(@file_name))
 
   erb :edit 
 end
 
 # updates the document
 post '/:document' do
-  doc_name = params[:document]
-  file_path = "#{DOCS_PATH}/#{doc_name}"
-  new_content = params[:content]
+  file_name = params[:document]
 
-  File.open(file_path, 'w') do |f|
-    f.write new_content
+  if file_exists?(file_name)
+    new_content = params[:content]
+
+    File.open(file_path(file_name), 'w') do |f|
+      f.write new_content
+    end
+
+    session[:success] = "#{file_name} has been updated."
+  else
+    session[:error] = "#{file_name} does not exist."
   end
 
-  session[:success] = "#{doc_name} has been updated."
   redirect '/'
 end
 
+#######################################################
+## Methods ##
+#######################################################
+
 def load_file_content(file_name)
-  path = "#{DOCS_PATH}/#{file_name}"
-  content = File.read(path)
+  content = File.read(file_path(file_name))
 
   case File.extname(file_name)
   when '.txt'
@@ -66,9 +70,13 @@ def load_file_content(file_name)
   end
 end
 
+def file_exists?(file_name)
+  files.include?(file_name)
+end
+
 # Returns the name of the files in data
-def get_documents
-  docs = Dir.entries(DOCS_PATH)
+def files
+  docs = Dir.entries(data_path)
   docs.shift(2) # removes '.' and '..'
   docs
 end
@@ -76,4 +84,16 @@ end
 def render_markdown(content)
   markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
   markdown.render(content)
+end
+
+def file_path(file_name)
+  "#{data_path}/#{file_name}"  
+end
+
+def data_path
+  if ENV['RACK_ENV'] == 'test'
+    File.expand_path('../test/data', __FILE__)
+  else
+    File.expand_path('../data', __FILE__)
+  end
 end
