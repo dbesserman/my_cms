@@ -3,12 +3,13 @@
   <head>
     <meta charset='UTF-8' />
     <title>My CMS</title> 
+    <link rel="stylesheet" href="/stylesheets/main.css">
   </head>
   <body>
     <% if session[:error] %>
-      <p><%= session.delete(:error) %><p>
+      <div class="error"><%= session.delete(:error) %></div>
     <% elsif session[:success] %>
-      <p><%= session.delete(:success) %><p>
+      <div class="success"><%= session.delete(:success) %></div>
     <% end %>
 
     <%= yield %>
