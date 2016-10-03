@@ -52,4 +52,24 @@ class CMSTest < Minitest::Test
     assert_equal 'text/html;charset=utf-8', last_response['Content-Type']
     assert_includes last_response.body, converted_title
   end
+
+  def test_editing_documents
+    get "/changes.txt/edit"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, '<textarea'
+    assert_includes last_response.body, %q(<button type="submit")
+  end
+
+  def test_editing_documents
+    post '/changes.txt', content: 'new content'
+    assert_equal 302, last_response.status
+
+    get last_response['location']
+    assert_includes last_response.body.strip, 'changes.txt has been updated.'
+
+    get '/changes.txt'
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, 'new content'
+  end
 end

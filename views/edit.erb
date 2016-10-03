@@ -1,0 +1,11 @@
+<form action="/<%= @doc_name %>" method="post">
+  <dl>
+    <dt>
+      <label for="content">Edit content of <%= @doc_name %></label>
+    </dt>
+    <dd>
+      <textarea name="content" if="content" cols="20" rows="100"><%= @content %></textarea>
+    </dd>
+  </dl>
+  <input type="submit" value="Save Changes">
+</form>

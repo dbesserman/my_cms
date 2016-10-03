@@ -1,5 +1,8 @@
 <ul>
   <% @documents.each do |doc| %>
-    <li><a href="/<%= doc %>"><%= doc %></a></li>
+    <li>
+      <a href="/<%= doc %>"><%= doc %></a>
+      <a href="/<%= doc %>/edit">edit</a>
+    </li>
   <% end %>
 </ul>

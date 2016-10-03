@@ -30,6 +30,29 @@ get '/:document' do
   end
 end
 
+# Accesses the form to edit a document
+get '/:document/edit' do
+  @doc_name = params[:document]
+  file_path = "#{DOCS_PATH}/#{@doc_name}"
+  @content = File.read(file_path)
+
+  erb :edit 
+end
+
+# updates the document
+post '/:document' do
+  doc_name = params[:document]
+  file_path = "#{DOCS_PATH}/#{doc_name}"
+  new_content = params[:content]
+
+  File.open(file_path, 'w') do |f|
+    f.write new_content
+  end
+
+  session[:success] = "#{doc_name} has been updated."
+  redirect '/'
+end
+
 def load_file_content(file_name)
   path = "#{DOCS_PATH}/#{file_name}"
   content = File.read(path)
