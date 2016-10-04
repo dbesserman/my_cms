@@ -78,6 +78,19 @@ post '/:document' do
   redirect '/'
 end
 
+post '/:document/destroy' do
+  file_name = params[:document]
+  
+  if file_exists?(file_name)
+    FileUtils.remove_file(file_path(file_name))
+    session[:success] = "#{file_name} has been deleted"
+  else
+    session[:error] = "#{file_name} does not exist"
+  end
+
+  redirect '/'
+end
+
 #######################################################
 ## Methods ##
 #######################################################

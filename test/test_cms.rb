@@ -113,6 +113,30 @@ class CMSTest < Minitest::Test
     assert_equal 422, last_response.status
   end
 
+  def test_deleting_document
+    file_name = 'some_document.txt'
+    create_document file_name
+
+    post "/#{file_name}/destroy"  
+    assert_equal 302, last_response.status
+
+    get last_response['location']
+    assert_includes last_response.body, "#{file_name} has been deleted"
+
+    get '/'
+    refute_includes last_response.body, file_name
+  end
+
+  def test_deleting_non_existing_document
+    file_name = 'some_document.txt'
+
+    post "/#{file_name}/destroy"  
+    assert_equal 302, last_response.status
+
+    get last_response['location']
+    assert_includes last_response.body, "#{file_name} does not exist"
+  end
+
   def setup
     FileUtils.mkdir_p(data_path)
   end
