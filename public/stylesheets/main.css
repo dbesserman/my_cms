@@ -5,5 +5,13 @@
 
 .success {
   padding: 10px;
-  background-color: #fff68f;
+  background-color: #b4eeb4;
+}
+
+.error {
+  background-color: #ffb6c1;
+}
+
+form.inline {
+  display: inline;
 }
