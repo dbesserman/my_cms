@@ -66,7 +66,7 @@ class CMSTest < Minitest::Test
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, '<textarea'
-    assert_includes last_response.body.strip, %q(<button type="submit")
+    assert_includes last_response.body, %q(<button type="submit")
   end
 
   def test_updating_documents
@@ -81,6 +81,36 @@ class CMSTest < Minitest::Test
     get '/changes.txt'
     assert_equal 200, last_response.status
     assert_includes last_response.body, 'new content'
+  end
+
+  def test_view_form_new_document
+    file_name = 'new_file.txt'
+    get "/new"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, '<textarea'
+    assert_includes last_response.body, %q(<button type="submit")
+  end
+
+  def test_creating_new_document
+    file_name = 'new_file.txt'
+
+    post '/create', filename: file_name
+    assert_equal 302, last_response.status
+
+    get last_response['location']
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "#{file_name} has been created"
+
+    get '/'
+    assert_includes last_response.body, file_name
+  end
+
+  def test_create_new_document_without_filename
+    post '/create', filename: ''
+
+    assert_includes last_response.body, 'A name is required'
+    assert_equal 422, last_response.status
   end
 
   def setup

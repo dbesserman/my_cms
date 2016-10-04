@@ -15,6 +15,30 @@ get '/' do
   erb :index, layout: :layout
 end
 
+# gets form to create new document
+get '/new' do
+  erb :new
+end
+
+# creates a new document
+post '/create' do
+  file_name = params[:filename]
+  content = params[:content]
+
+  if file_name.empty?
+    session[:error] = 'A name is required'
+    status 422
+    erb :new
+  elsif file_exists?(file_name)
+    session[:error] = "#{file_name} already exists"
+    redirect '/'
+  else
+    create_document(file_name, content)
+    session[:success] = "#{file_name} has been created"
+    redirect '/'
+  end
+end
+
 # Accesses a document
 get '/:document' do
   file_name = params[:document]
@@ -95,5 +119,11 @@ def data_path
     File.expand_path('../test/data', __FILE__)
   else
     File.expand_path('../data', __FILE__)
+  end
+end
+
+def create_document(name, content='')
+  File.open(file_path(name), 'w') do |file|
+    file.write(content)
   end
 end
