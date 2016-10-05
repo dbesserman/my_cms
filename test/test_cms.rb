@@ -41,12 +41,7 @@ class CMSTest < Minitest::Test
 
     get "/#{file_name}"
     assert_equal 302, last_response.status
-
-    get last_response['location']
-    assert_includes last_response.body, error_message
-
-    get '/'
-    refute_includes last_response.body, error_message
+    assert_equal error_message, session[:error]
   end
 
   def test_viewing_markdown_file
@@ -74,9 +69,7 @@ class CMSTest < Minitest::Test
 
     post '/changes.txt', content: 'new content'
     assert_equal 302, last_response.status
-
-    get last_response['location']
-    assert_includes last_response.body, 'changes.txt has been updated.'
+    assert_equal 'changes.txt has been updated.', session[:success]
 
     get '/changes.txt'
     assert_equal 200, last_response.status
@@ -97,10 +90,7 @@ class CMSTest < Minitest::Test
 
     post '/create', filename: file_name
     assert_equal 302, last_response.status
-
-    get last_response['location']
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "#{file_name} has been created"
+    assert_equal "#{file_name} has been created", session[:success] 
 
     get '/'
     assert_includes last_response.body, file_name
@@ -119,12 +109,7 @@ class CMSTest < Minitest::Test
 
     post "/#{file_name}/destroy"  
     assert_equal 302, last_response.status
-
-    get last_response['location']
-    assert_includes last_response.body, "#{file_name} has been deleted"
-
-    get '/'
-    refute_includes last_response.body, file_name
+    assert_equal "#{file_name} has been deleted", session[:success]
   end
 
   def test_deleting_non_existing_document
@@ -132,9 +117,7 @@ class CMSTest < Minitest::Test
 
     post "/#{file_name}/destroy"  
     assert_equal 302, last_response.status
-
-    get last_response['location']
-    assert_includes last_response.body, "#{file_name} does not exist"
+    assert_equal "#{file_name} does not exist", session[:error]
   end
 
   def test_signin_form
@@ -148,27 +131,25 @@ class CMSTest < Minitest::Test
   def test_signin
     post '/users/signin', username: 'admin', password: 'secret'
     assert_equal 302, last_response.status
+    assert_equal 'admin', session[:username]
+    assert_equal 'Welcome!', session[:success]
     
     get last_response['location']
-    assert_includes last_response.body, 'Welcome'
     assert_includes last_response.body, 'Signed in as admin'
   end
 
   def test_signin_with_bad_credentials
     post '/users/signin', username: 'guest', password: 'shhh'
     assert_equal 422, last_response.status
+    assert_equal nil, session[:username]
     assert_includes last_response.body, 'Invalid credentials'
   end
 
   def test_signout
-    post '/users/signin', username: 'admin', password: 'secret'
-    get last_response['location']
-    assert_includes last_response.body, 'Welcome'
+    post '/users/signout', {}, admin_session
+    assert_equal 'You have been signed out.', session[:success]
 
-    post '/users/signout'
     get last_response['location']
-
-    assert_includes last_response.body, 'You have been signed out'
     assert_includes last_response.body, 'Sign In'
   end
 
@@ -180,9 +161,11 @@ class CMSTest < Minitest::Test
     FileUtils.rm_rf(data_path)
   end
 
-  def create_document(name, content='')
-    File.open(file_path(name), 'w') do |file|
-      file.write(content)
-    end
+  def session
+    last_request.env['rack.session']
+  end
+
+  def admin_session
+    { 'rack.session' => { username: 'admin' } }
   end
 end
