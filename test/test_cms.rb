@@ -57,7 +57,11 @@ class CMSTest < Minitest::Test
   def test_editing_documents
     create_document('changes.txt')
 
-    get "/changes.txt/edit"
+    get '/changes.txt/edit'
+    assert_equal 302, last_response.status
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    get '/changes.txt/edit', {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, '<textarea'
@@ -69,6 +73,10 @@ class CMSTest < Minitest::Test
 
     post '/changes.txt', content: 'new content'
     assert_equal 302, last_response.status
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    post '/changes.txt', { content: 'new content' }, admin_session
+    assert_equal 302, last_response.status
     assert_equal 'changes.txt has been updated.', session[:success]
 
     get '/changes.txt'
@@ -78,8 +86,12 @@ class CMSTest < Minitest::Test
 
   def test_view_form_new_document
     file_name = 'new_file.txt'
-    get "/new"
 
+    get "/new"
+    assert_equal 302, last_response.status
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    get "/new", {}, admin_session
     assert_equal 200, last_response.status
     assert_includes last_response.body, '<textarea'
     assert_includes last_response.body, %q(<button type="submit")
@@ -89,6 +101,9 @@ class CMSTest < Minitest::Test
     file_name = 'new_file.txt'
 
     post '/create', filename: file_name
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    post '/create', { filename: file_name }, admin_session
     assert_equal 302, last_response.status
     assert_equal "#{file_name} has been created", session[:success] 
 
@@ -98,7 +113,10 @@ class CMSTest < Minitest::Test
 
   def test_create_new_document_without_filename
     post '/create', filename: ''
+    assert_equal 302, last_response.status
+    assert_equal 'You must be signed in to do that', session[:error]
 
+    post '/create', { filename: '' }, admin_session
     assert_includes last_response.body, 'A name is required'
     assert_equal 422, last_response.status
   end
@@ -108,6 +126,9 @@ class CMSTest < Minitest::Test
     create_document file_name
 
     post "/#{file_name}/destroy"  
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    post "/#{file_name}/destroy", {}, admin_session
     assert_equal 302, last_response.status
     assert_equal "#{file_name} has been deleted", session[:success]
   end
@@ -116,6 +137,9 @@ class CMSTest < Minitest::Test
     file_name = 'some_document.txt'
 
     post "/#{file_name}/destroy"  
+    assert_equal 'You must be signed in to do that', session[:error]
+
+    post "/#{file_name}/destroy", {}, admin_session 
     assert_equal 302, last_response.status
     assert_equal "#{file_name} does not exist", session[:error]
   end

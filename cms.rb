@@ -17,11 +17,15 @@ end
 
 # gets form to create new document
 get '/new' do
+  require_sign_in
+
   erb :new
 end
 
 # creates a new document
 post '/create' do
+  require_sign_in
+
   file_name = params[:filename]
   content = params[:content]
 
@@ -53,6 +57,8 @@ end
 
 # Accesses the form to edit a document
 get '/:document/edit' do
+  require_sign_in
+
   @file_name = params[:document]
   @content = File.read(file_path(@file_name))
 
@@ -61,6 +67,8 @@ end
 
 # updates the document
 post '/:document' do
+  require_sign_in
+
   file_name = params[:document]
 
   if file_exists?(file_name)
@@ -79,6 +87,8 @@ post '/:document' do
 end
 
 post '/:document/destroy' do
+  require_sign_in
+
   file_name = params[:document]
   
   if file_exists?(file_name)
@@ -161,4 +171,15 @@ def create_document(name, content='')
   File.open(file_path(name), 'w') do |file|
     file.write(content)
   end
+end
+
+def require_sign_in
+  unless signed_in?
+    session[:error] = 'You must be signed in to do that'
+    redirect '/'
+  end
+end
+
+def signed_in?
+  !!session[:username]
 end
