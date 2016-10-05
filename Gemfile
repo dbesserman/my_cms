@@ -4,6 +4,7 @@ source "https://rubygems.org"
 gem "sinatra"
 gem "erubis"
 gem 'redcarpet'
+gem 'bcrypt'
 
 group :develop do
   gem "sinatra-contrib"

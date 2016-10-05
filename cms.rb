@@ -3,6 +3,7 @@ require 'sinatra/reloader'
 require 'tilt/erubis'
 require 'redcarpet'
 require 'yaml'
+require 'bcrypt'
 
 DOCS_PATH = 'data'
 
@@ -161,7 +162,7 @@ def file_path(file_name)
 end
 
 def data_path
-  if ENV['RACK_ENV'] == 'test'
+ if ENV['RACK_ENV'] == 'test'
     File.expand_path('../test/data', __FILE__)
   else
     File.expand_path('../data', __FILE__)
@@ -196,7 +197,10 @@ end
 def valid_credentials?
   credentials = load_users_credentials
   username = params[:username]
-  credentials.key?(username) && (credentials[username] == params[:password])
+  password = params[:password]
+  bcrypt_password = BCrypt::Password.new(credentials[username])
+
+  credentials.key?(username) && (bcrypt_password == password)
 end
 
 def load_users_credentials
