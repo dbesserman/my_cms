@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'tilt/erubis'
 require 'redcarpet'
+require 'yaml'
 
 DOCS_PATH = 'data'
 
@@ -106,7 +107,7 @@ get '/users/signin' do
 end
 
 post '/users/signin' do
-  if params[:username] == 'admin' && params[:password] == 'secret'
+  if valid_credentials?
     session[:username] = params[:username]
     session[:success] = 'Welcome!'
     redirect '/'
@@ -167,6 +168,14 @@ def data_path
   end
 end
 
+def app_path
+  if ENV['RACK_ENV'] == 'test'
+    File.expand_path('../test', __FILE__)
+  else
+    File.expand_path('../', __FILE__)
+  end
+end
+
 def create_document(name, content='')
   File.open(file_path(name), 'w') do |file|
     file.write(content)
@@ -182,4 +191,15 @@ end
 
 def signed_in?
   !!session[:username]
+end
+
+def valid_credentials?
+  credentials = load_users_credentials
+  username = params[:username]
+  credentials.key?(username) && (credentials[username] == params[:password])
+end
+
+def load_users_credentials
+  credentials_path = "#{app_path}/users.yml"
+  YAML.load_file(credentials_path)
 end
